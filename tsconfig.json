@@ -14,5 +14,7 @@
     {
       "path": "./tsconfig.node.json"
     }
-  ]
+  ],
+  "noImplicitAny": false, 
+"allowJs": true,
 }

@@ -1,355 +1,227 @@
 <template>
-  <div id="three"></div>
-  <Popover
-    ref="popoverRef"
-    :top="popoverTop"
-    :left="popoverLeft"
-    :data="popoverData"
-  ></Popover>
+  <div id="container"></div>
 </template>
 
-<script lang="ts" setup name="Sence">
-/* eslint-disable */
-import { ref, onMounted, type Ref } from 'vue';
-import Viewer, { type Animate } from '@/modules/Viewer';
-import Floors from '@/modules/Floors';
-import ModelLoader from '@/modules/ModelLoder';
-import * as THREE from 'three';
-import gsap from 'gsap';
-import Event from '@/modules/Viewer/Events';
-import BoxHelperWrap from '@/modules/BoxHelperWrap';
-import { checkNameIncludes, findParent } from '@/utils';
+<script setup>
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import AMapLoader from "@amap/amap-jsapi-loader";
+import { useMarkersStore } from '@/stores/markersStore';
 
-import Popover from './Popover/index.vue';
+const markersStore = useMarkersStore();
+let map = ref(null);
 
-let viewer: Viewer;
-let modelLoader: ModelLoader;
-let boxHelperWrap: BoxHelperWrap;
-
-const popoverRef: Ref = ref(null);
-const popoverTop = ref(0);
-const popoverLeft = ref(0);
-const popoverData = ref<any>({});
-
-let office: any = null;
-let oldOffice: any = null;
-let dataCenter: any = null;
-let oldDataCenter: any = null;
-let modelSelect = ['zuo0', 'zuo1', 'zuo2', 'zuo3', 'zuo4', 'zuo5'];
-let modelSelectName = '';
-let modelMoveName = '';
-let isModelSelectName = false;
-
-
-onMounted(() => {
-  init();
-  initModel();
-
-  viewer.scene.traverse((item: THREE.Object3D) => {
-    console.log(item, '0000000000');
-  });
-});
-
-const init = () => {
-  viewer = new Viewer('three');
-  // viewer.addAxis();
-  // viewer.addStats();
-  viewer.initRaycaster();
-
-  modelLoader = new ModelLoader(viewer);
-  // const floors = new Floors(viewer);
-  // floors.addGird();
-
-  boxHelperWrap = new BoxHelperWrap(viewer);
-
-  viewer.emitter.on(Event.dblclick.raycaster, (list: THREE.Intersection[]) => {
-    onMouseClick(list);
-  });
-
-  viewer.emitter.on(Event.mousemove.raycaster, (list: THREE.Intersection[]) => {
-    onMouseMove(list);
-  });
-
-};
-
-const initModel = () => {
-  // modelLoader.loadModelToScene('/models/zuo.glb', baseModel => {
-  //   console.log(baseModel, '1111111');
-    
-  //   baseModel.setScalc(0.01);
-  //   const model = baseModel.gltf.scene;
-  //   office = baseModel;
-  //   office.object.rotation.y = Math.PI;
-  //   office.object.position.set(2, 0, 0);
-  //   // model.position.set(80, 2, 90);
-  //   office.object.children.forEach((item: any) => {
-  //     item.name = item.name.replace('zuo', '');
-  //     if (item.name === 'ding') {
-  //       item.name = 6;
-  //     }
-  //     item.name--;
-  //   });
-  //   office.object.children.sort((a: { name: number; }, b: { name: number; }) => a.name - b.name).forEach((v: { name: string; }) => {
-  //     v.name = 'zuo' + v.name;
-  //   });
-
-  //   model.name = '办公楼';
-  //   baseModel.openCastShadow();
-  //   oldOffice = model.clone();
-
-  //   const list: THREE.Object3D<THREE.Event>[] = [];
-  //   model.traverse(item => {
-  //     list.push(item);
-  //   });
-  //   viewer.setRaycasterObjects(list);
-  // });
-
-  modelLoader.loadModelToScene('/models/plane.glb', baseModel => {
-    const model = baseModel.gltf.scene;
-    model.scale.set(0.0001 * 3, 0.0001 * 3, 0.0001 * 3)
-    model.position.set(0, 0, 0);
-    model.name = 'plane';
-    baseModel.openCastShadow();
-
-    const texture = (baseModel.object.children[0] as any).material.map;
-    console.log(texture, 'texture-------');
-    const fnOnj = planeAnimate(texture);
-    viewer.addAnimate(fnOnj);
-  });
-  
-
-  modelLoader.loadModelToScene('/models/datacenter.glb', baseModel => {
-    console.log(baseModel, '1111111');
-    baseModel.setScalc(0.2);
-    // baseModel.object.rotation.y = Math.PI / 2;
-    const model = baseModel.gltf.scene;
-    model.position.set(0, 0, 0);
-    model.name = '机房';
-    baseModel.openCastShadow();
-
-    dataCenter = baseModel;
-    oldDataCenter = model.clone();
-
-    const rackList: any[] = [];
-    model.traverse(item => {
-      if (checkIsRack(item)) {
-        rackList.push(item);
-      }
-    });
-    // console.log(rackList, 'rackList------');
-
-    viewer.setRaycasterObjects(rackList);
-    
-  });
-};
-
-const planeAnimate = (texture: any): Animate => {
-    console.log(texture, 'texture');
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    const animateFn = {
-      fun: () => {
-        const count = texture.repeat.y;
-        if (count <= 10) {
-          texture.repeat.x += 0.01;
-          texture.repeat.y += 0.02;
-        } else {
-          texture.repeat.x = 0;
-          texture.repeat.y = 0;
-        }
-      },
-      content: viewer,
-    };
-    return animateFn;
-}
-
-const onMouseClick = (intersects: THREE.Intersection[]) => {
-  if (!intersects.length) return;
-  const selectedObject = intersects[0].object;
-
-  let selectedObjectName = '';
-  const findClickModel = (object: any) => {
-    console.log(object, 'object');
-    if (object.type === 'Group') {
-      selectedObjectName = object.name;
-    }
-    if (object.parent && object.type !== 'Scene') {
-      findClickModel(object.parent);
-    }
-  };
-  findClickModel(selectedObject);
-  console.log(selectedObjectName);
-
-  // if (!selectedObjectName || !selectedObjectName.includes('办公楼')) {
-  //   // this.scene.remove(this.label);
-  //   return;
-  // }
-
-  // const selectedModel = viewer.scene.getObjectByName(selectedObjectName);
-  console.log(selectedObject, 'selectedObject');
-  
-  // 点击楼房
-  if (selectedObject.name.includes('zuo')) {
-    
-    selectOffice(selectedObject.parent);
-  }
-  
-  // 点击其他区域
-  if (!selectedObject.name.includes('zuo')) {
-    if (!isModelSelectName && oldOffice) {
-      let oldmodel = oldOffice.getObjectByName(modelMoveName);
-      office.object.getObjectByName(modelMoveName).traverse(function (child: { isMesh: any; material: any; name: any; }) {
-        if (child.isMesh) {
-          child.material = oldmodel.getObjectByName(child.name).material;
-        }
-      });
-    }
-  }
-};
-
-function checkIsRack (obj: any): boolean {
-  return checkNameIncludes(obj, 'rack');
-}
-
-const onMouseMove = (intersects: THREE.Intersection[]) => {
-  if (!intersects.length) {
-    popoverRef.value.setShow(false);
-    boxHelperWrap.setVisible(false);
+// 创建标记点并显示信息
+function addMarker() {
+  if (!markersStore.markers) {
+    console.error('markersStore.markers is undefined');
     return;
   }
-  const selectedObject = intersects[0].object || {};
-  
-  
-  let selectedObjectName = '';
-  const findClickModel = (object: any) => {
-    if (object.name.includes('rack')) {
-      selectedObjectName = object.name;
+  console.log('markersStore.markers:', markersStore.markers);
+  markersStore.markers.forEach((markerData) => {
+    if (!markerData.bins) {
+      console.error('markerData.bins is undefined');
       return;
     }
-    if (object.parent) {
-      findClickModel(object.parent);
+
+    // 根据 bins 的状态设置背景色和图标
+    let popoverBackgroundColor = '';
+    let iconImage = '';
+    let hasHighTemperature = false;
+
+    // 确定背景色优先级
+    const hasFullBin = markerData.bins.some(bin => bin.status === '满');
+    const hasHalfFullBin = markerData.bins.some(bin => bin.status === '半满');
+    hasHighTemperature = markerData.bins.some(bin => bin.temperature > 60);
+
+    if (hasFullBin) {
+      popoverBackgroundColor = '#FF8A80'; // 更柔和的红色
+      iconImage = '/src/assets/images/single_err_bin.svg';
+    } else if (hasHalfFullBin) {
+      popoverBackgroundColor = '#f3d06a'; // 更柔和的黄色
+      iconImage = '/src/assets/images/single_warn_bin.svg';
+    } else {
+      popoverBackgroundColor = 'rgba(29, 78, 216, 0.6)'; // 半透明蓝色
+      iconImage = '/src/assets/images/bin.svg';
     }
+
+    // 如果有高温，使用 warning.svg 并添加动画效果
+    if (hasHighTemperature) {
+      iconImage = '/src/assets/images/warning.svg';
+    }
+
+    // 自定义信息窗体内容
+    var content = `
+      <div class="popover" style="background-color: ${popoverBackgroundColor};z-index: 9999;">
+        <div class="popover-title">
+          ${markerData.name}
+        </div>
+   <div class="popover-content">
+  <div class="grid-container">
+    ${markerData.bins.map(bin => `
+      <div class='bin_item'>
+        <div>分类：${bin.name}</div>
+        <div>温度：${bin.temperature}°C</div>
+        <div>湿度：${bin.humidity}%</div>
+        <div>状态：${bin.status}</div>
+      </div>
+    `).join('')}
+  </div>
+</div>
+      </div>`;
+
+    // 创建 infoWindow 实例
+    var infoWindow = new AMap.InfoWindow({
+      isCustom: true, // 使用自定义窗体
+      content: content, // 传入动态拼接的 DOM 元素
+      anchor: "top-left",
+    });
+
+    // 创建标记
+    const marker = new window.AMap.Marker({
+      position: new window.AMap.LngLat(markerData.position[0], markerData.position[1]),
+      icon: new AMap.Icon({
+        size: new AMap.Size(100, 40),
+        image: iconImage,
+        imageSize: new AMap.Size(40, 40),
+      }),
+      offset: new AMap.Pixel(-10, -40),
+    });
+
+    if (map.value && marker) {
+      map.value.add(marker);
+
+      // 设置 hover 事件
+      marker.on('mouseover', () => {
+        infoWindow.open(map.value, marker.getPosition());
+      });
+
+      marker.on('mouseout', () => {
+        infoWindow.close();
+      });
+
+      // 直接使用marker.on会产生位移的情况，所以我们这里使用自定义事件
+      let el = marker.dom.querySelector('.amap-icon img');
+      if (el) {
+        // 只有当 iconImage 为 warning.svg 时应用动画效果
+        if (iconImage === '/src/assets/images/warning.svg') {
+          el.style.animation = 'scale-animation 1s infinite';
+        }
+      }
+    }
+  });
+}
+
+let intervalId = ref(null);
+onMounted(() => {
+  // 高德地图安全设置
+  window._AMapSecurityConfig = {
+    securityJsCode: "你的code",
   };
 
-  // const findClickModel = (object: any) => {
-  //   if (object.name.includes('zuo')) {
-  //     selectedObjectName = object.name;
-  //     return;
-  //   }
-  //   if (object.parent) {
-  //     findClickModel(object.parent);
-  //   }
-  // };
-  findClickModel(selectedObject);
-
-  console.log(selectedObjectName, '--selectedObjectName---');
-  console.log(selectedObject, '------selectedObject---------');
-  const rack = findParent(selectedObject, checkIsRack);
-  console.log(rack, '-------rack---------');
-  if (rack) {
-    
-    boxHelperWrap.attach(rack);
-    updateRackInfo(rack.name);
-  }
-
-  // if (!selectedObjectName || !selectedObjectName.includes('办公楼')) {
-  //   // 重置模型
-  //   // viewer.scene.children[viewer.scene.children.findIndex(o => o.name === '办公楼')] = office.object = oldOffice.clone();
-  //   return;
-  // }
-
-
-  modelSelect.forEach((item: any) => {
-    if (item === selectedObject.parent?.name) {
-      modelMoveName = item;
-      if (modelSelectName === modelMoveName) return;
-      office.object.getObjectByName(item).traverse(function (child: { isMesh: any; material: THREE.MeshPhongMaterial; }) {
-        if (child.isMesh) {
-          child.material = new THREE.MeshPhongMaterial({
-            side: THREE.DoubleSide,
-            transparent: true,
-            depthTest: false,
-            depthWrite: true, // 无法被选择，鼠标穿透
-            color: 'yellow',
-            opacity: 0.3,
-          });
-        }
+  // 加载高德地图 JavaScript API
+  AMapLoader.load({
+    key: "你的code", // 申请好的Web端开发者Key
+    version: "2.0", // JSAPI 版本
+    plugins: ["AMap.Scale"], // 加载的插件
+  })
+    .then((AMap) => {
+      // 初始化地图
+      map.value = new AMap.Map("container", {
+        viewMode: "3D", // 3D视图
+        zoom: 18, // 初始缩放级别
+        center: new AMap.LngLat(113.991874, 22.529966), // 设置地图中心点
       });
-    } else {
-      if (!isModelSelectName && oldOffice) {
-        let oldmodel = oldOffice.getObjectByName(item);
-        office.object.getObjectByName(item).traverse(function (child: { isMesh: any; material: any; name: any; }) {
-          if (child.isMesh) {
-            child.material = oldmodel.getObjectByName(child.name).material;
-          }
-        });
-      }
-    }
-  });
 
-};
 
-const updateRackInfo = (name: string) => {
-  if (name) {
-    popoverRef.value.setShow(true, { name });
-    const event = viewer.mouseEvent as MouseEvent;
-    popoverTop.value = event.y + 10;
-    popoverLeft.value = event.x + 10;
-  } else {
-    popoverRef.value.setShow(false);
+      // 初始化完成后，添加标记
+      addMarker();
 
-  }
-};
-
-const selectOffice = (model: any) => {
-  modelSelectName = model.name;
-  let oldmodel = oldOffice.getObjectByName(modelSelectName);
-  let modelSelectIndex = modelSelect.findIndex(v => v === modelSelectName);
-  office.object.children.forEach((child: any, index: number) => {
-    child.children.forEach((Mesh: any) => {
-      if (child.name === modelSelectName) {
-        child.children.forEach((Mesh: { material: any; name: any; }) => {
-          Mesh.material = oldmodel.getObjectByName(Mesh.name).material;
-        });
-      } else {
-        // Mesh.material = new THREE.MeshPhongMaterial({
-        //   color: new THREE.Color('#123ca8'),
-        //   transparent: true,
-        //   opacity: 0.5,
-        //   emissiveMap: Mesh.material.map,
-        // });
-      }
+      // 每隔10秒钟更新一次垃圾桶状态
+      intervalId.value = setInterval(markersStore.updateMarkerStatus, 1000);
+    })
+    .catch((e) => {
+      console.error("AMapLoader 加载失败", e);
     });
-    if (!model.userData.position && index > modelSelectIndex) {
-      gsap.to(child.position, {
-        y: !child.userData.position ? child.position.y + 60 : child.position.y,
-        duration: 2,
-        ease: "power1.inOut",
-        onComplete: () => {
-          child.userData.position = true;
-        },
-      });
-    }
-    if (model.userData.position && index <= modelSelectIndex) {
-      if (child.userData.position) {
-        gsap.to(child.position, {
-          y: oldOffice.getObjectByName(child.name).position.y,
-          duration: 2,
-          ease: "power1.inOut",
-          onComplete: () => {
-            child.userData.position = false;
-          },
-        });
-      }
-    }
-  });
-};
+});
 
+onUnmounted(() => {
+  // 销毁地图实例，释放资源
+  map.value?.destroy();
+  clearInterval(intervalId.value);
+});
+
+// 监听 markers 数据的变化，当 markers 数据变化时重新添加标记
+watch(
+  () => markersStore.markers,
+  () => {
+    if (map.value) {
+      map.value.clearMap(); // 清除原有的标记
+      addMarker(); // 重新添加标记
+    }
+  },
+  { deep: true }
+);
 </script>
 
-<style scoped>
-#three {
-  height: 100%;
+<style lang="less">
+#container {
   width: 100%;
+  height: 800px; /* 设置容器高度 */
+}
+// 高德icon默认宽度100修改
+.amap-icon {
+  overflow: visible !important;
+  width: 0 !important;
+}
+.popover {
+  position: absolute;
+  border-radius: 10px;
+  font-size: 0.2rem;
+  color: #fff;
+  backdrop-filter: blur(20px); 
+  -webkit-backdrop-filter: blur(10px);  
+}
+.popover-title {
+  padding: 12px;
+  border-bottom: 1px solid #fff;
+}
+.popover-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  div {
+    padding-top: 5px;
+  }
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px; /* 设置网格项之间的间距 */
+}
+
+.bin_item {
+  width: 100px;
+  display:flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* 添加放大缩小动画 */
+.scale-animation {
+  animation: scale-animation 1s infinite;
+}
+
+@keyframes scale-animation {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>

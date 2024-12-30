@@ -18,34 +18,32 @@ onMounted(() => {
 const init = () => {
   option = {
     title: {
-      text: 'Referer of a Website',
+      text: '总垃圾量中四类垃圾占比',
       left: 'center',
       textStyle: {
         color: '#fff',
         fontSize: '0.3rem',
       },
+      top: '10px',
     },
     tooltip: {
       trigger: 'item',
       textStyle: {
         fontSize: '0.2rem',
       },
+      formatter: (params) => {
+        return `${params.name}: ${params.value} (${params.percent}%)`;
+      },
     },
-    // legend: {
-    //   orient: 'vertical',
-    //   left: 'left',
-    // },
     series: [
       {
-        name: 'Access From',
         type: 'pie',
         radius: '50%',
         data: [
-          { value: 1048, name: 'Search Engine' },
-          { value: 735, name: 'Direct' },
-          { value: 580, name: 'Email' },
-          { value: 484, name: 'Union Ads' },
-          { value: 300, name: 'Video Ads' },
+          { value: 1048, name: '其他垃圾' },
+          { value: 735, name: '可回收垃圾' },
+          { value: 580, name: '厨余垃圾' },
+          { value: 484, name: '有害垃圾' },
         ],
         emphasis: {
           itemStyle: {
@@ -55,25 +53,29 @@ const init = () => {
           },
         },
         label: {
-          // fontSize: '0.2rem',
           color: '#fff',
-          fontWeight: 'bold',
+          // fontWeight: 'bold',
+        },
+        labelLine: {
+          show: true,
         },
       },
     ],
     textStyle: {
+      fontSize: '0.2rem',
+      color: '#fff',
     },
   };
-  
+
   setOptions(option);
 };
-
-
 </script>
 
-<style scope>
+<style scoped>
 .chart {
   width: 100%;
-  height: 40vh;
+  height: 37vh;
+  display: flex;
+  align-items: center;
 }
 </style>

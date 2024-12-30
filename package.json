@@ -13,18 +13,27 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
+    "@dataview/datav-vue3": "^0.0.0-test.1672506674342",
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.9",
     "dayjs": "^1.11.7",
     "echarts": "^5.4.2",
+    "element-plus": "^2.9.1",
     "express": "^4.18.2",
     "gsap": "^3.11.3",
+    "less": "^4.2.1",
     "lodash-es": "^4.17.21",
     "mitt": "^3.0.0",
-    "pinia": "^2.0.32",
+    "pinia": "^2.3.0",
+    "scss": "^0.2.4",
     "three": "^0.152.2",
     "v-scale-screen": "^2.2.0",
-    "vue": "^3.2.47"
+    "vue": "^3.2.47",
+    "vue3-seamless-scroll": "^2.0.1"
   },
   "devDependencies": {
+    "@jiaminghi/data-view": "^2.10.0",
     "@rushstack/eslint-patch": "^1.2.0",
     "@types/lodash-es": "^4.17.7",
     "@types/node": "^18.15.11",

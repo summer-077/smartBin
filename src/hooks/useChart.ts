@@ -14,6 +14,7 @@ export function useChart(
   resizeFn = debounceResize;
 
   function init() {
+    // elRef.value.style.padding = 0px';
     chartsInstenceRef = echarts.init(elRef.value, theme);
   }
   const setOptions = (options: EChartsOption) => {

@@ -18,14 +18,16 @@ onMounted(() => {
 });
 
 const init = () => {
-  // const myChart = echarts.init(chartRef.value);
   option = {
-    color: ['#80FFA5', '#00DDFF', '#37A2FF', '#FF0087', '#FFBF00'],
+    color: ['#91cc75', '#fac858', '#ee6666', '#5470c6'],
     title: {
-      text: 'Gradient Stacked Area Chart',
+      text: '周垃圾量',
       textStyle: {
         color: '#fff',
+        fontSize: '0.3rem',
       },
+      top: '20px', // 调整标题位置以避免与图例重叠
+      left: 'center',
     },
     tooltip: {
       trigger: 'axis',
@@ -37,7 +39,17 @@ const init = () => {
       },
     },
     legend: {
-      data: ['Line 1', 'Line 2', 'Line 3', 'Line 4', 'Line 5'],
+      data: ['可回收垃圾', '厨余垃圾', '有害垃圾', '其他垃圾'],
+      top: '22%', // 图例位置设置为顶部
+      left: 'center', // 图例水平居中
+      icon:'rect',
+      // orient: 'horizontal', // 图例方向为横向
+      // itemGap: 40, // 调整图例项之间的间距
+      // itemWidth: 20, // 设置每个图例项的宽度
+      textStyle: {
+        color: '#fff', // 图例文字颜色
+        fontSize: '12px',
+      },
     },
     textStyle: {
       fontSize: '0.2rem',
@@ -46,6 +58,7 @@ const init = () => {
     grid: {
       left: '3%',
       right: '4%',
+      top: '35%', // 调整顶部留白以适应图例和标题
       bottom: '3%',
       containLabel: true,
     },
@@ -53,7 +66,7 @@ const init = () => {
       {
         type: 'category',
         boundaryGap: false,
-        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
       },
     ],
     yAxis: [
@@ -63,7 +76,7 @@ const init = () => {
     ],
     series: [
       {
-        name: 'Line 1',
+        name: '可回收垃圾',
         type: 'line',
         stack: 'Total',
         smooth: true,
@@ -72,17 +85,8 @@ const init = () => {
         },
         showSymbol: false,
         areaStyle: {
-          opacity: 0.8,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgb(128, 255, 165)',
-            },
-            {
-              offset: 1,
-              color: 'rgb(1, 191, 236)',
-            },
-          ]),
+          opacity: 1,
+          color: '#91cc75',
         },
         emphasis: {
           focus: 'series',
@@ -90,7 +94,7 @@ const init = () => {
         data: [140, 232, 101, 264, 90, 340, 250],
       },
       {
-        name: 'Line 2',
+        name: '厨余垃圾',
         type: 'line',
         stack: 'Total',
         smooth: true,
@@ -99,44 +103,8 @@ const init = () => {
         },
         showSymbol: false,
         areaStyle: {
-          opacity: 0.8,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgb(0, 221, 255)',
-            },
-            {
-              offset: 1,
-              color: 'rgb(77, 119, 255)',
-            },
-          ]),
-        },
-        emphasis: {
-          focus: 'series',
-        },
-        data: [120, 282, 111, 234, 220, 340, 310],
-      },
-      {
-        name: 'Line 3',
-        type: 'line',
-        stack: 'Total',
-        smooth: true,
-        lineStyle: {
-          width: 0,
-        },
-        showSymbol: false,
-        areaStyle: {
-          opacity: 0.8,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgb(55, 162, 255)',
-            },
-            {
-              offset: 1,
-              color: 'rgb(116, 21, 219)',
-            },
-          ]),
+          opacity: 1,
+          color: '#fac858',
         },
         emphasis: {
           focus: 'series',
@@ -144,7 +112,7 @@ const init = () => {
         data: [320, 132, 201, 334, 190, 130, 220],
       },
       {
-        name: 'Line 4',
+        name: '有害垃圾',
         type: 'line',
         stack: 'Total',
         smooth: true,
@@ -153,17 +121,8 @@ const init = () => {
         },
         showSymbol: false,
         areaStyle: {
-          opacity: 0.8,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgb(255, 0, 135)',
-            },
-            {
-              offset: 1,
-              color: 'rgb(135, 0, 157)',
-            },
-          ]),
+          opacity: 1,
+          color: '#ee6666',
         },
         emphasis: {
           focus: 'series',
@@ -171,7 +130,7 @@ const init = () => {
         data: [220, 402, 231, 134, 190, 230, 120],
       },
       {
-        name: 'Line 5',
+        name: '其他垃圾',
         type: 'line',
         stack: 'Total',
         smooth: true,
@@ -184,17 +143,8 @@ const init = () => {
           position: 'top',
         },
         areaStyle: {
-          opacity: 0.8,
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            {
-              offset: 0,
-              color: 'rgb(255, 191, 0)',
-            },
-            {
-              offset: 1,
-              color: 'rgb(224, 62, 76)',
-            },
-          ]),
+          opacity: 1,
+          color: '#5470c6',
         },
         emphasis: {
           focus: 'series',
@@ -204,14 +154,10 @@ const init = () => {
     ],
   };
   setOptions(option);
-
-  // option && myChart.setOption(option);
 };
-
-
 </script>
 
-<style scope>
+<style scoped>
 .chart {
   width: 100%;
   height: 40vh;
