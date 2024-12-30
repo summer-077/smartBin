@@ -9,13 +9,13 @@ npm start
 ```
 
 ## 背景介绍
-本项目基于 https://github.com/fh332393900/threejs-demo.git 进行改造
+本项目基于 https://github.com/fh332393900/threejs-demo.git 进行改造()
 
 原项目以threeJs为主导
 
 本项目套用其结构，将threeJs更改为高德地图为背景的简单大屏模板
-![image](https://github.com/summer-077/bin/base.gif)
-![image](https://github.com/summer-077/bin/warning.gif)
+![基本展示](./public/base.gif)
+![告警展示](./public/warning.gif)
 
 
 ## 项目介绍
